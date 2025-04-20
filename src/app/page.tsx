@@ -9,6 +9,8 @@ import {Icons} from '@/components/icons';
 import {Card, CardHeader, CardContent} from '@/components/ui/card';
 import {ModeToggle} from '@/components/mode-toggle';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+// import medibatLogo from './medibat.png'; // Import the image
+const medibatLogo = 'https://picsum.photos/200/100';
 
 function convertTextToCsv(text: string): string {
   const rows = text.split('\n').map(row => {
@@ -108,7 +110,7 @@ export default function Home() {
         <ModeToggle />
       </div>
       <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
-        <img src="https://firebasestorage.googleapis.com/v0/b/fir-studio.appspot.com/o/medibat.png?alt=media&token=b259795d-3b64-493a-be24-19504446ba34" alt="MEDIBAT Logo" className="h-20 mb-4" />
+        <img src={medibatLogo} alt="MEDIBAT Logo" className="h-20 mb-4" />
         <h1 className="text-2xl font-bold mb-4">OCR Weaver</h1>
 
         {/* Image Upload */}
