@@ -100,9 +100,13 @@ export default function Home() {
     });
   }, [extractedText, toast]);
 
-  const parsedData = extractedText
-    .split('\n')
-    .map(row => row.split(',').map(cell => cell.trim()));
+  // Function to parse CSV text and convert to array of arrays
+  const parseCsvText = (csvText: string) => {
+    const lines = csvText.split('\n');
+    return lines.map(line => line.split(',').map(cell => cell.trim()));
+  };
+  
+  const parsedData = parseCsvText(extractedText);
 
   return (
     <>
