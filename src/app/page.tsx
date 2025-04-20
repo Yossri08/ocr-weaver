@@ -6,6 +6,7 @@ import {ocrTextExtraction} from '@/ai/flows/ocr-text-extraction';
 import {Button} from '@/components/ui/button';
 import {Textarea} from '@/components/ui/textarea';
 import {Icons} from '@/components/icons';
+import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -107,12 +108,19 @@ export default function Home() {
 
       {/* Text Display */}
       <div className="mb-4 w-full max-w-md">
-        <Textarea
-          value={extractedText}
-          readOnly
-          placeholder="Extracted text will appear here..."
-          className="w-full h-40 rounded-md shadow-sm resize-none"
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Extracted Text</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              value={extractedText}
+              readOnly
+              placeholder="Extracted text will appear here..."
+              className="w-full h-40 rounded-md shadow-sm resize-none"
+            />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Copy to Clipboard Button */}
@@ -129,4 +137,3 @@ export default function Home() {
     </div>
   );
 }
-
