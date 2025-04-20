@@ -8,9 +8,6 @@ import {Textarea} from '@/components/ui/textarea';
 import {Icons} from '@/components/icons';
 import {Card, CardHeader, CardContent} from '@/components/ui/card';
 import {ModeToggle} from '@/components/mode-toggle';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-//import medibatLogo from './logo-Medibafth (1).jpg'; // Import the image
-//const medibatLogo = './logo-Medibafth (1).jpg';
 
 function convertTextToCsv(text: string): string {
   const rows = text.split('\n').map(row => {
@@ -100,13 +97,7 @@ export default function Home() {
     });
   }, [extractedText, toast]);
 
-  // Function to parse CSV text and convert to array of arrays
-  const parseCsvText = (csvText: string) => {
-    const lines = csvText.split('\n');
-    return lines.map(line => line.split(',').map(cell => cell.trim()));
-  };
-  
-  const parsedData = parseCsvText(extractedText);
+  const parsedData = extractedText.split('\n').filter(line => line.trim() !== '');
 
   return (
     <>
@@ -115,7 +106,7 @@ export default function Home() {
       </div>
       <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
         <img src="/logo-Medibafth (1).jpg" alt="MEDIBAT Logo" className="h-20 mb-4" />
-        <h1 className="text-2xl font-bold mb-4">OCR Weaver</h1>
+        <h1 className="text-2xl font-bold mb-4">Convertir Image en Texte</h1>
 
         {/* Image Upload */}
         <div className="mb-4">
@@ -146,7 +137,7 @@ export default function Home() {
         {/* Text Extraction Button */}
         <div className="mb-4">
           <Button onClick={handleTextExtraction} disabled={loading} variant={'outline'}>
-            {loading ? 'Extracting...' : 'Extract Text'}
+            {loading ? 'Extracting...' : 'Extract data'}
           </Button>
         </div>
 
@@ -157,24 +148,11 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               {parsedData.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {parsedData[0].map((header, index) => (
-                        <TableHead key={index}>{header}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parsedData.slice(1).map((row, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <TableCell key={cellIndex}>{cell}</TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <ul className="list-disc list-inside">
+                  {parsedData.map((line, index) => (
+                    <li key={index}>{line}</li>
+                  ))}
+                </ul>
               ) : (
                 <Textarea
                   value={extractedText}
