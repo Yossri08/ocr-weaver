@@ -121,7 +121,7 @@ export default function Home() {
             id="image-upload"
           />
           <label htmlFor="image-upload">
-            <Button asChild>
+            <Button asChild variant={'outline'}>
               <div className="flex items-center gap-2">
                 <Icons.plusCircle className="h-4 w-4" />
                 <span>Upload Image</span>
@@ -139,7 +139,7 @@ export default function Home() {
 
         {/* Text Extraction Button */}
         <div className="mb-4">
-          <Button onClick={handleTextExtraction} disabled={loading}>
+          <Button onClick={handleTextExtraction} disabled={loading} variant={'outline'}>
             {loading ? 'Extracting...' : 'Extract Text'}
           </Button>
         </div>
@@ -184,13 +184,13 @@ export default function Home() {
         {/* Copy to Clipboard Button */}
         {extractedText && (
           <div className="flex gap-2">
-            <Button onClick={handleCopyToClipboard}>
+            <Button onClick={handleCopyToClipboard} variant={'outline'}>
               <div className="flex items-center gap-2">
                 <Icons.copy className="h-4 w-4" />
                 <span>Copy to Clipboard</span>
               </div>
             </Button>
-            <Button onClick={handleDownloadCSV}>
+            <Button onClick={handleDownloadCSV} variant={'outline'}>
               <div className="flex items-center gap-2">
                 <Icons.file className="h-4 w-4" />
                 <span>Download CSV</span>
