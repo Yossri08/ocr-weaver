@@ -69,6 +69,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
+      <img src="https://storage.googleapis.com/gen-ai--generated-images/medibat.png" alt="OCR Weaver Logo" className="h-20 mb-4" />
       <h1 className="text-2xl font-bold mb-4">OCR Weaver</h1>
 
       {/* Image Upload */}
@@ -128,3 +129,4 @@ export default function Home() {
     </div>
   );
 }
+
