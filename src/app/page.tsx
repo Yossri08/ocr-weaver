@@ -9,8 +9,8 @@ import {Icons} from '@/components/icons';
 import {Card, CardHeader, CardContent} from '@/components/ui/card';
 import {ModeToggle} from '@/components/mode-toggle';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-// import medibatLogo from './medibat.png'; // Import the image
-const medibatLogo = 'https://picsum.photos/200/100';
+import medibatLogo from './logo-Medibafth (1).jpg'; // Import the image
+//const medibatLogo = './logo-Medibafth (1).jpg';
 
 function convertTextToCsv(text: string): string {
   const rows = text.split('\n').map(row => {
