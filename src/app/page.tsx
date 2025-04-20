@@ -6,9 +6,9 @@ import {ocrTextExtraction} from '@/ai/flows/ocr-text-extraction';
 import {Button} from '@/components/ui/button';
 import {Textarea} from '@/components/ui/textarea';
 import {Icons} from '@/components/icons';
-import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
+import {Card, CardHeader, CardContent} from '@/components/ui/card';
 import {ModeToggle} from '@/components/mode-toggle';
-import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 
 function convertTextToCsv(text: string): string {
   const rows = text.split('\n').map(row => {
@@ -148,7 +148,6 @@ export default function Home() {
         <div className="mb-4 w-full max-w-md">
           <Card>
             <CardHeader>
-              <CardTitle>Extracted Text</CardTitle>
             </CardHeader>
             <CardContent>
               {parsedData.length > 0 ? (
