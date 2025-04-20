@@ -1,3 +1,4 @@
+
 'use client';
 
 import {useState, useCallback} from 'react';
@@ -7,6 +8,7 @@ import {Button} from '@/components/ui/button';
 import {Textarea} from '@/components/ui/textarea';
 import {Icons} from '@/components/icons';
 import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
+import {ModeToggle} from '@/components/mode-toggle';
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -69,71 +71,77 @@ export default function Home() {
   }, [extractedText, toast]);
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
-      <img src="https://storage.googleapis.com/gen-ai--generated-images/medibat.png" alt="OCR Weaver Logo" className="h-20 mb-4" />
-      <h1 className="text-2xl font-bold mb-4">OCR Weaver</h1>
-
-      {/* Image Upload */}
-      <div className="mb-4">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className="hidden"
-          id="image-upload"
-        />
-        <label htmlFor="image-upload">
-          <Button asChild>
-            <div className="flex items-center gap-2">
-              <Icons.plusCircle className="h-4 w-4" />
-              <span>Upload Image</span>
-            </div>
-          </Button>
-        </label>
+    <>
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
       </div>
+      <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
+        <img src="https://storage.googleapis.com/gen-ai--generated-images/medibat.png" alt="OCR Weaver Logo" className="h-20 mb-4" />
+        <h1 className="text-2xl font-bold mb-4">OCR Weaver</h1>
 
-      {/* Image Preview */}
-      {imageUrl && (
+        {/* Image Upload */}
         <div className="mb-4">
-          <img src={imageUrl} alt="Uploaded Image" className="max-w-md rounded-md shadow-md" />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+            id="image-upload"
+          />
+          <label htmlFor="image-upload">
+            <Button asChild>
+              <div className="flex items-center gap-2">
+                <Icons.plusCircle className="h-4 w-4" />
+                <span>Upload Image</span>
+              </div>
+            </Button>
+          </label>
         </div>
-      )}
 
-      {/* Text Extraction Button */}
-      <div className="mb-4">
-        <Button onClick={handleTextExtraction} disabled={loading}>
-          {loading ? 'Extracting...' : 'Extract Text'}
-        </Button>
-      </div>
+        {/* Image Preview */}
+        {imageUrl && (
+          <div className="mb-4">
+            <img src={imageUrl} alt="Uploaded Image" className="max-w-md rounded-md shadow-md" />
+          </div>
+        )}
 
-      {/* Text Display */}
-      <div className="mb-4 w-full max-w-md">
-        <Card>
-          <CardHeader>
-            <CardTitle>Extracted Text</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={extractedText}
-              readOnly
-              placeholder="Extracted text will appear here..."
-              className="w-full h-40 rounded-md shadow-sm resize-none"
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Copy to Clipboard Button */}
-      {extractedText && (
-        <div>
-          <Button onClick={handleCopyToClipboard}>
-            <div className="flex items-center gap-2">
-              <Icons.copy className="h-4 w-4" />
-              <span>Copy to Clipboard</span>
-            </div>
+        {/* Text Extraction Button */}
+        <div className="mb-4">
+          <Button onClick={handleTextExtraction} disabled={loading}>
+            {loading ? 'Extracting...' : 'Extract Text'}
           </Button>
         </div>
-      )}
-    </div>
+
+        {/* Text Display */}
+        <div className="mb-4 w-full max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle>Extracted Text</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={extractedText}
+                readOnly
+                placeholder="Extracted text will appear here..."
+                className="w-full h-40 rounded-md shadow-sm resize-none"
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Copy to Clipboard Button */}
+        {extractedText && (
+          <div>
+            <Button onClick={handleCopyToClipboard}>
+              <div className="flex items-center gap-2">
+                <Icons.copy className="h-4 w-4" />
+                <span>Copy to Clipboard</span>
+              </div>
+            </Button>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
+
