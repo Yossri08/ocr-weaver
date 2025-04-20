@@ -9,7 +9,7 @@ import {Icons} from '@/components/icons';
 import {Card, CardHeader, CardContent} from '@/components/ui/card';
 import {ModeToggle} from '@/components/mode-toggle';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import medibatLogo from './logo-Medibafth (1).jpg'; // Import the image
+//import medibatLogo from './logo-Medibafth (1).jpg'; // Import the image
 //const medibatLogo = './logo-Medibafth (1).jpg';
 
 function convertTextToCsv(text: string): string {
@@ -114,7 +114,7 @@ export default function Home() {
         <ModeToggle />
       </div>
       <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
-        <img src={medibatLogo} alt="MEDIBAT Logo" className="h-20 mb-4" />
+        <img src="/logo-Medibafth (1).jpg" alt="MEDIBAT Logo" className="h-20 mb-4" />
         <h1 className="text-2xl font-bold mb-4">OCR Weaver</h1>
 
         {/* Image Upload */}
