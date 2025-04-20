@@ -1,4 +1,3 @@
-
 'use client';
 
 import {useState, useCallback} from 'react';
@@ -9,6 +8,28 @@ import {Textarea} from '@/components/ui/textarea';
 import {Icons} from '@/components/icons';
 import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
 import {ModeToggle} from '@/components/mode-toggle';
+import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+
+function convertTextToCsv(text: string): string {
+  const rows = text.split('\n').map(row => {
+    const cells = row.split(',').map(cell => `"${cell.replace(/"/g, '""')}"`);
+    return cells.join(',');
+  });
+  return rows.join('\n');
+}
+
+function downloadCSV(text: string) {
+  const csvData = convertTextToCsv(text);
+  const blob = new Blob([csvData], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'extracted_text.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -70,6 +91,17 @@ export default function Home() {
     });
   }, [extractedText, toast]);
 
+  const handleDownloadCSV = useCallback(() => {
+    downloadCSV(extractedText);
+    toast({
+      title: 'Text downloaded as CSV!',
+    });
+  }, [extractedText, toast]);
+
+  const parsedData = extractedText
+    .split('\n')
+    .map(row => row.split(',').map(cell => cell.trim()));
+
   return (
     <>
       <div className="absolute top-4 right-4">
@@ -119,23 +151,50 @@ export default function Home() {
               <CardTitle>Extracted Text</CardTitle>
             </CardHeader>
             <CardContent>
-              <Textarea
-                value={extractedText}
-                readOnly
-                placeholder="Extracted text will appear here..."
-                className="w-full h-40 rounded-md shadow-sm resize-none"
-              />
+              {parsedData.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {parsedData[0].map((header, index) => (
+                        <TableHead key={index}>{header}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parsedData.slice(1).map((row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <TableCell key={cellIndex}>{cell}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <Textarea
+                  value={extractedText}
+                  readOnly
+                  placeholder="Extracted text will appear here..."
+                  className="w-full h-40 rounded-md shadow-sm resize-none"
+                />
+              )}
             </CardContent>
           </Card>
         </div>
 
         {/* Copy to Clipboard Button */}
         {extractedText && (
-          <div>
+          <div className="flex gap-2">
             <Button onClick={handleCopyToClipboard}>
               <div className="flex items-center gap-2">
                 <Icons.copy className="h-4 w-4" />
                 <span>Copy to Clipboard</span>
+              </div>
+            </Button>
+            <Button onClick={handleDownloadCSV}>
+              <div className="flex items-center gap-2">
+                <Icons.file className="h-4 w-4" />
+                <span>Download CSV</span>
               </div>
             </Button>
           </div>
@@ -144,4 +203,3 @@ export default function Home() {
     </>
   );
 }
-

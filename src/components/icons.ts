@@ -32,4 +32,3 @@ const Icons = {
 };
 
 export {Icons};
-
