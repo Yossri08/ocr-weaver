@@ -77,7 +77,7 @@ export default function Home() {
         title: 'Error extracting text.',
         description: error.message || 'Something went wrong.',
         variant: 'destructive',
-      });
+       });
     } finally {
       setLoading(false);
     }
@@ -104,8 +104,8 @@ export default function Home() {
     });
   }, [extractedText, toast]);
 
-  const parsedData = extractedText.split('\n');
-  const tableData = parsedData.map(row => row.split(','));
+  // Parse the extracted text into rows and columns
+  const parsedData = extractedText.trim().split('\n').map(row => row.split(','));
 
   return (
     <>
@@ -145,31 +145,39 @@ export default function Home() {
         {/* Text Extraction Button */}
         <div className="mb-4">
           <Button onClick={handleTextExtraction} disabled={loading} variant={'outline'}>
-            {loading ? 'Extracting...' : 'Extract data'}
+            {loading ? (
+              'Extracting data...'
+            ) : (
+              'Extract data'
+            )}
           </Button>
         </div>
 
         {/* Text Display */}
         <div className="mb-4 w-full max-w-md">
-          <Table>
-            <TableCaption>Extracted data from the image</TableCaption>
-            <TableHeader>
-              <TableRow>
-                {tableData[0]?.map((header, index) => (
-                  <TableHead key={index}>{header}</TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tableData.slice(1).map((row, rowIndex) => (
-                <TableRow key={rowIndex}>
-                  {row.map((cell, cellIndex) => (
-                    <TableCell key={cellIndex}>{cell}</TableCell>
+          {extractedText ? (
+            <Table>
+              <TableCaption>Extracted data from the image</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  {parsedData[0]?.map((header, index) => (
+                    <TableHead key={index}>{header}</TableHead>
                   ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {parsedData.slice(1).map((row, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {row.map((cell, cellIndex) => (
+                      <TableCell key={cellIndex}>{cell}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p>No text extracted yet.</p>
+          )}
         </div>
 
         {/* Copy to Clipboard Button */}
