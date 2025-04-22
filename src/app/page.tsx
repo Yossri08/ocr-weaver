@@ -154,7 +154,18 @@ export default function Home() {
 
   const isValidTableData = Array.isArray(parsedData) && parsedData.every(item => typeof item === 'object' && item !== null);
 
-  const headers = isValidTableData && parsedData.length > 0 ? Object.keys(parsedData[0]) : [];
+  // Extract all headers from the parsed data
+  const allHeaders = useMemo(() => {
+    if (!isValidTableData || parsedData.length === 0) {
+      return [];
+    }
+
+    const headers = new Set<string>();
+    parsedData.forEach(row => {
+      Object.keys(row).forEach(header => headers.add(header));
+    });
+    return Array.from(headers);
+  }, [parsedData, isValidTableData]);
 
 
   return (
@@ -210,7 +221,7 @@ export default function Home() {
               <TableCaption>Extracted data</TableCaption>
               <TableHeader>
                 <TableRow>
-                  {headers.map((header) => (
+                  {allHeaders.map((header) => (
                     <TableHead key={header}>{header}</TableHead>
                   ))}
                 </TableRow>
@@ -218,8 +229,8 @@ export default function Home() {
               <TableBody>
                 {parsedData.map((row, index) => (
                   <TableRow key={index}>
-                    {headers.map((header) => (
-                      <TableCell key={header}>{row[header]}</TableCell>
+                    {allHeaders.map((header) => (
+                      <TableCell key={header}>{row[header] !== undefined ? row[header] : ''}</TableCell>
                     ))}
                   </TableRow>
                 ))}
