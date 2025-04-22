@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useMemo} from 'react';
 import {useToast} from '@/hooks/use-toast';
 import {ocrTextExtraction} from '@/ai/flows/ocr-text-extraction';
 import {Button} from '@/components/ui/button';
@@ -9,33 +9,12 @@ import {ModeToggle} from '@/components/mode-toggle';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-
-function convertTextToCsv(text: string): string {
-  const rows = text.split('\n').map(row => {
-    const cells = row.split(',').map(cell => `"${cell.replace(/"/g, '""')}"`);
-    return cells.join(',');
-  });
-  return rows.join('\n');
-}
-
-function downloadCSV(text: string) {
-  const csvData = convertTextToCsv(text);
-  const blob = new Blob([csvData], {type: 'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'extracted_text.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+  TableCaption,
+} from "@/components/ui/table";
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -67,6 +46,7 @@ export default function Home() {
     setLoading(true);
     try {
       const result = await ocrTextExtraction({photoUrl: imageUrl});
+      // Assuming result.extractedText is a JSON string
       setExtractedText(result.extractedText);
       toast({
         title: 'Text extracted successfully!',
@@ -77,7 +57,7 @@ export default function Home() {
         title: 'Error extracting text.',
         description: error.message || 'Something went wrong.',
         variant: 'destructive',
-       });
+      });
     } finally {
       setLoading(false);
     }
@@ -98,14 +78,45 @@ export default function Home() {
   }, [extractedText, toast]);
 
   const handleDownloadCSV = useCallback(() => {
-    downloadCSV(extractedText);
+    const csvData = extractedText; // The extracted text should already be in CSV format
+    const blob = new Blob([csvData], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'extracted_text.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
     toast({
       title: 'Text downloaded as CSV!',
     });
   }, [extractedText, toast]);
 
-  // Parse the extracted text into rows and columns
-  const parsedData = extractedText.trim().split('\n').map(row => row.split(','));
+  const parsedData = useMemo(() => {
+    if (!extractedText) return [];
+
+    try {
+      // Attempt to parse the extracted text as JSON
+      return JSON.parse(extractedText);
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      toast({
+        title: 'Error parsing extracted text.',
+        description: 'The extracted text is not in the expected JSON format.',
+        variant: 'destructive',
+      });
+      return [];
+    }
+  }, [extractedText, toast]);
+
+  // Ensure parsedData is an array of objects
+  const isValidTableData = Array.isArray(parsedData) && parsedData.every(item => typeof item === 'object' && item !== null);
+
+  // Extract headers from the first object in the parsed data
+  const headers = isValidTableData && parsedData.length > 0 ? Object.keys(parsedData[0]) : [];
+
 
   return (
     <>
@@ -153,36 +164,36 @@ export default function Home() {
           </Button>
         </div>
 
-        {/* Text Display */}
-        <div className="mb-4 w-full max-w-md">
-          {extractedText ? (
-            <Table>
-              <TableCaption>Extracted data from the image</TableCaption>
+        {/* Display extracted data in a table */}
+        {extractedText && isValidTableData && parsedData.length > 0 ? (
+          <div className="overflow-x-auto">
+            <Table className="w-full">
+              <TableCaption>Extracted data</TableCaption>
               <TableHeader>
                 <TableRow>
-                  {parsedData[0]?.map((header, index) => (
-                    <TableHead key={index}>{header}</TableHead>
+                  {headers.map((header) => (
+                    <TableHead key={header}>{header}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {parsedData.slice(1).map((row, rowIndex) => (
-                  <TableRow key={rowIndex}>
-                    {row.map((cell, cellIndex) => (
-                      <TableCell key={cellIndex}>{cell}</TableCell>
+                {parsedData.map((row, index) => (
+                  <TableRow key={index}>
+                    {headers.map((header) => (
+                      <TableCell key={header}>{row[header]}</TableCell>
                     ))}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          ) : (
-            <p>No text extracted yet.</p>
-          )}
-        </div>
+          </div>
+        ) : (
+          <p>No text extracted yet or invalid data format.</p>
+        )}
 
         {/* Copy to Clipboard Button */}
         {extractedText && (
-          <div className="flex gap-2">
+          <div className="mb-4 flex gap-2">
             <Button onClick={handleCopyToClipboard} variant={'outline'}>
               <div className="flex items-center gap-2">
                 <Icons.copy className="h-4 w-4" />
@@ -192,7 +203,7 @@ export default function Home() {
             <Button onClick={handleDownloadCSV} variant={'outline'}>
               <div className="flex items-center gap-2">
                 <Icons.file className="h-4 w-4" />
-                <span>Download CSV</span>
+                <span>Download as CSV</span>
               </div>
             </Button>
           </div>
