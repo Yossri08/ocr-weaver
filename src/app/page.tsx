@@ -15,6 +15,7 @@ import {
   TableRow,
   TableCaption,
 } from "@/components/ui/table";
+import {Toaster} from "@/components/ui/toaster";
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -46,8 +47,8 @@ export default function Home() {
     setLoading(true);
     try {
       const result = await ocrTextExtraction({photoUrl: imageUrl});
-      // Assuming result.extractedText is a JSON string
-      setExtractedText(result.extractedText);
+      // Assuming result.extractedData is a JSON string
+      setExtractedText(result.extractedData);
       toast({
         title: 'Text extracted successfully!',
       });
@@ -78,20 +79,61 @@ export default function Home() {
   }, [extractedText, toast]);
 
   const handleDownloadCSV = useCallback(() => {
-    const csvData = extractedText; // The extracted text should already be in CSV format
-    const blob = new Blob([csvData], {type: 'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'extracted_text.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (!extractedText) {
+      toast({
+        title: 'No text to download.',
+      });
+      return;
+    }
 
-    toast({
-      title: 'Text downloaded as CSV!',
-    });
+    try {
+      const parsedData = JSON.parse(extractedText);
+      if (!Array.isArray(parsedData)) {
+        throw new Error('Extracted data is not a valid JSON array.');
+      }
+
+      // Convert JSON array to CSV format
+      const csvRows = [];
+      // Extract headers (keys from the first object)
+      if (parsedData.length > 0) {
+        const headers = Object.keys(parsedData[0]);
+        csvRows.push(headers.join(','));
+
+        // Extract values for each row
+        parsedData.forEach(row => {
+          const values = headers.map(header => row[header]);
+          csvRows.push(values.join(','));
+        });
+
+        const csvData = csvRows.join('\n');
+        const blob = new Blob([csvData], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'extracted_data.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast({
+          title: 'Data downloaded as CSV!',
+        });
+      } else {
+        toast({
+          title: 'No data to download.',
+          description: 'The extracted JSON array is empty.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error converting to CSV:', error);
+      toast({
+        title: 'Error converting data to CSV.',
+        description: error.message || 'Something went wrong.',
+        variant: 'destructive',
+      });
+    }
   }, [extractedText, toast]);
 
   const parsedData = useMemo(() => {
@@ -209,6 +251,7 @@ export default function Home() {
           </div>
         )}
       </div>
+       <Toaster />
     </>
   );
 }
