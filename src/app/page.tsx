@@ -47,7 +47,6 @@ export default function Home() {
     setLoading(true);
     try {
       const result = await ocrTextExtraction({photoUrl: imageUrl});
-      // Assuming result.extractedData is a JSON string
       setExtractedText(result.extractedData);
       toast({
         title: 'Text extracted successfully!',
@@ -153,10 +152,8 @@ export default function Home() {
     }
   }, [extractedText, toast]);
 
-  // Ensure parsedData is an array of objects
   const isValidTableData = Array.isArray(parsedData) && parsedData.every(item => typeof item === 'object' && item !== null);
 
-  // Extract headers from the first object in the parsed data
   const headers = isValidTableData && parsedData.length > 0 ? Object.keys(parsedData[0]) : [];
 
 
