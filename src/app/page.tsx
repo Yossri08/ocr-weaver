@@ -16,6 +16,7 @@ import {
   TableCaption,
 } from "@/components/ui/table";
 import {Toaster} from "@/components/ui/toaster";
+import * as React from 'react';
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -131,7 +132,7 @@ export default function Home() {
         title: 'Error converting data to CSV.',
         description: error.message || 'Something went wrong.',
         variant: 'destructive',
-      });
+       });
     }
   }, [extractedText, toast]);
 
