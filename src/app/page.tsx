@@ -4,10 +4,17 @@ import {useState, useCallback} from 'react';
 import {useToast} from '@/hooks/use-toast';
 import {ocrTextExtraction} from '@/ai/flows/ocr-text-extraction';
 import {Button} from '@/components/ui/button';
-import {Textarea} from '@/components/ui/textarea';
 import {Icons} from '@/components/icons';
-import {Card, CardHeader, CardContent} from '@/components/ui/card';
 import {ModeToggle} from '@/components/mode-toggle';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 function convertTextToCsv(text: string): string {
   const rows = text.split('\n').map(row => {
@@ -97,7 +104,8 @@ export default function Home() {
     });
   }, [extractedText, toast]);
 
-  const parsedData = extractedText.split('\n').filter(line => line.trim() !== '');
+  const parsedData = extractedText.split('\n');
+  const tableData = parsedData.map(row => row.split(','));
 
   return (
     <>
@@ -143,26 +151,25 @@ export default function Home() {
 
         {/* Text Display */}
         <div className="mb-4 w-full max-w-md">
-          <Card>
-            <CardHeader>
-            </CardHeader>
-            <CardContent>
-              {parsedData.length > 0 ? (
-                <ul className="list-disc list-inside">
-                  {parsedData.map((line, index) => (
-                    <li key={index}>{line}</li>
+          <Table>
+            <TableCaption>Extracted data from the image</TableCaption>
+            <TableHeader>
+              <TableRow>
+                {tableData[0]?.map((header, index) => (
+                  <TableHead key={index}>{header}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tableData.slice(1).map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {row.map((cell, cellIndex) => (
+                    <TableCell key={cellIndex}>{cell}</TableCell>
                   ))}
-                </ul>
-              ) : (
-                <Textarea
-                  value={extractedText}
-                  readOnly
-                  placeholder="Extracted text will appear here..."
-                  className="w-full h-40 rounded-md shadow-sm resize-none"
-                />
-              )}
-            </CardContent>
-          </Card>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
 
         {/* Copy to Clipboard Button */}
