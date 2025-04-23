@@ -1,11 +1,9 @@
 'use client';
 
-import {useState, useCallback, useMemo} from 'react';
-import {useToast} from '@/hooks/use-toast';
-import {ocrTextExtraction} from '@/ai/flows/ocr-text-extraction';
-import {Button} from '@/components/ui/button';
-import {Icons} from '@/components/icons';
-import {ModeToggle} from '@/components/mode-toggle';
+import { ocrTextExtraction } from '@/ai/flows/ocr-text-extraction';
+import { Button } from '@/components/ui/button';
+import { Icons } from '@/components/icons';
+import { ModeToggle } from '@/components/mode-toggle';
 import {
   Table,
   TableBody,
@@ -15,20 +13,84 @@ import {
   TableRow,
   TableCaption,
 } from "@/components/ui/table";
-import {Toaster} from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toaster";
 import * as React from 'react';
+import Image from 'next/image';
 
-export default function Home() {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [extractedText, setExtractedText] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const {toast} = useToast();
+function OcrResultTable({ extractedText }: { extractedText: string }) {
+  const [tableData, setTableData] = React.useState<any[]>([]);
 
-  const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
+  React.useEffect(() => {
+    if (extractedText) {
+      try {
+        const parsedData = JSON.parse(extractedText);
+        if (Array.isArray(parsedData)) {
+          setTableData(parsedData);
+        } else {
+          console.error('Extracted data is not a valid JSON array.');
+        }
+      } catch (error: any) {
+        console.error('Error parsing JSON:', error);
+      }
+    } else {
+      setTableData([]);
     }
+  }, [extractedText]);
+
+  const allHeaders = React.useMemo(() => {
+    if (tableData.length === 0) return [];
+    const headers = new Set<string>();
+    tableData.forEach(row => {
+      Object.keys(row).forEach(header => headers.add(header));
+    });
+    return Array.from(headers);
+  }, [tableData]);
+
+  return (
+    <>
+      {tableData.length > 0 ? (
+        <div className="overflow-x-auto w-full max-w-6xl">
+          <Table>
+            <TableCaption>Extracted Data</TableCaption>
+            <TableHeader>
+              <TableRow>
+                {allHeaders.map(header => (
+                  <TableHead key={header} className="text-center">
+                    {header}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tableData.map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {allHeaders.map(header => (
+                    <TableCell key={header} className="text-center">
+                      {row[header] ?? '—'}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <p className="text-gray-500">No data extracted or invalid format.</p>
+      )}
+    </>
+  );
+}
+
+// Client component
+const ClientHome = () => {
+  const [imageUrl, setImageUrl] = React.useState<string | null>(null);
+  const [extractedText, setExtractedText] = React.useState<string>('');
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const { toast } = React.useContext(React.createContext({ toast: (options: any) => { } })); // Mock context
+
+  const handleImageUpload = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -37,21 +99,17 @@ export default function Home() {
     reader.readAsDataURL(file);
   }, []);
 
-  const handleTextExtraction = useCallback(async () => {
+  const handleTextExtraction = React.useCallback(async () => {
     if (!imageUrl) {
-      toast({
-        title: 'Please upload an image first.',
-      });
+      toast({ title: 'Please upload an image first.' });
       return;
     }
 
     setLoading(true);
     try {
-      const result = await ocrTextExtraction({photoUrl: imageUrl});
+      const result = await ocrTextExtraction({ photoUrl: imageUrl });
       setExtractedText(result.extractedData);
-      toast({
-        title: 'Text extracted successfully!',
-      });
+      toast({ title: 'Text extracted successfully!' });
     } catch (error: any) {
       console.error('Error extracting text:', error);
       toast({
@@ -64,25 +122,19 @@ export default function Home() {
     }
   }, [imageUrl, toast]);
 
-  const handleCopyToClipboard = useCallback(() => {
+  const handleCopyToClipboard = React.useCallback(() => {
     if (!extractedText) {
-      toast({
-        title: 'No text to copy.',
-      });
+      toast({ title: 'No text to copy.' });
       return;
     }
 
     navigator.clipboard.writeText(extractedText);
-    toast({
-      title: 'Text copied to clipboard!',
-    });
+    toast({ title: 'Text copied to clipboard!' });
   }, [extractedText, toast]);
 
-  const handleDownloadCSV = useCallback(() => {
+  const handleDownloadExcel = React.useCallback(() => {
     if (!extractedText) {
-      toast({
-        title: 'No text to download.',
-      });
+      toast({ title: 'No text to download.' });
       return;
     }
 
@@ -92,94 +144,44 @@ export default function Home() {
         throw new Error('Extracted data is not a valid JSON array.');
       }
 
-      // Convert JSON array to CSV format
-      const csvRows = [];
-      // Extract headers (keys from the first object)
-      if (parsedData.length > 0) {
-        const headers = Object.keys(parsedData[0]);
-        csvRows.push(headers.join(','));
+      const allKeys = Array.from(new Set(parsedData.flatMap(Object.keys)));
+      const csvRows = [allKeys.join(',')];
 
-        // Extract values for each row
-        parsedData.forEach(row => {
-          const values = headers.map(header => row[header]);
-          csvRows.push(values.join(','));
-        });
+      parsedData.forEach(row => {
+        const values = allKeys.map(key => (row[key] ?? '')); // fill missing fields
+        csvRows.push(values.join(','));
+      });
 
-        const csvData = csvRows.join('\n');
-        const blob = new Blob([csvData], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'extracted_data.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+      const csvData = csvRows.join('\n');
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'extracted_data.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-        toast({
-          title: 'Data downloaded as CSV!',
-        });
-      } else {
-        toast({
-          title: 'No data to download.',
-          description: 'The extracted JSON array is empty.',
-          variant: 'destructive',
-        });
-      }
+      toast({ title: 'Data downloaded as Excel!' });
     } catch (error: any) {
       console.error('Error converting to CSV:', error);
       toast({
-        title: 'Error converting data to CSV.',
+        title: 'Error converting data to Excel.',
         description: error.message || 'Something went wrong.',
         variant: 'destructive',
-       });
-    }
-  }, [extractedText, toast]);
-
-  const parsedData = useMemo(() => {
-    if (!extractedText) return [];
-
-    try {
-      // Attempt to parse the extracted text as JSON
-      return JSON.parse(extractedText);
-    } catch (error) {
-      console.error('Error parsing JSON:', error);
-      toast({
-        title: 'Error parsing extracted text.',
-        description: 'The extracted text is not in the expected JSON format.',
-        variant: 'destructive',
       });
-      return [];
     }
   }, [extractedText, toast]);
-
-  const isValidTableData = Array.isArray(parsedData) && parsedData.every(item => typeof item === 'object' && item !== null);
-
-  // Extract all headers from the parsed data
-  const allHeaders = useMemo(() => {
-    if (!isValidTableData || parsedData.length === 0) {
-      return [];
-    }
-
-    const headers = new Set<string>();
-    parsedData.forEach(row => {
-      Object.keys(row).forEach(header => headers.add(header));
-    });
-    return Array.from(headers);
-  }, [parsedData, isValidTableData]);
-
 
   return (
     <>
-      <div className="absolute top-4 right-4">
-        <ModeToggle />
-      </div>
-      <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
-        <img src="/logo-Medibafth (1).jpg" alt="MEDIBAT Logo" className="h-20 mb-4" />
-        <h1 className="text-2xl font-bold mb-4">Convertir Image en Texte</h1>
+      <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4 space-y-6">
+        <Image src="/logo-Medibafth (1).jpg" width={160} height={80} alt="MEDIBAT Logo" className="mb-4" />
+        <h1 className="text-3xl font-bold mb-6">Convertir Image en Texte</h1>
 
         {/* Image Upload */}
-        <div className="mb-4">
+        <div>
           <input
             type="file"
             accept="image/*"
@@ -188,9 +190,9 @@ export default function Home() {
             id="image-upload"
           />
           <label htmlFor="image-upload">
-            <Button asChild variant={'outline'}>
+            <Button asChild variant="outline">
               <div className="flex items-center gap-2">
-                <Icons.plusCircle className="h-4 w-4" />
+                <Icons.plusCircle className="h-5 w-5" />
                 <span>Upload Image</span>
               </div>
             </Button>
@@ -200,67 +202,50 @@ export default function Home() {
         {/* Image Preview */}
         {imageUrl && (
           <div className="mb-4">
-            <img src={imageUrl} alt="Uploaded Image" className="max-w-md rounded-md shadow-md" />
+            <img src={imageUrl} alt="Uploaded" className="max-w-md rounded-lg shadow-lg" />
           </div>
         )}
 
-        {/* Text Extraction Button */}
-        <div className="mb-4">
-          <Button onClick={handleTextExtraction} disabled={loading} variant={'outline'}>
-            {loading ? (
-              'Extracting data...'
-            ) : (
-              'Extract data'
-            )}
-          </Button>
-        </div>
+        {/* Text Extraction */}
+        <Button onClick={handleTextExtraction} disabled={loading} variant="outline">
+          {loading ? 'Extracting data...' : 'Extract data'}
+        </Button>
 
         {/* Display extracted data in a table */}
-        {extractedText && isValidTableData && parsedData.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table className="w-full">
-              <TableCaption>Extracted data</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  {allHeaders.map((header) => (
-                    <TableHead key={header}>{header}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {parsedData.map((row, index) => (
-                  <TableRow key={index}>
-                    {allHeaders.map((header) => (
-                      <TableCell key={header}>{row[header] !== undefined ? row[header] : ''}</TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <p>No text extracted yet or invalid data format.</p>
-        )}
+        <OcrResultTable extractedText={extractedText} />
 
-        {/* Copy to Clipboard Button */}
+        {/* Copy & Download buttons */}
         {extractedText && (
-          <div className="mb-4 flex gap-2">
-            <Button onClick={handleCopyToClipboard} variant={'outline'}>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button onClick={handleCopyToClipboard} variant="outline">
               <div className="flex items-center gap-2">
-                <Icons.copy className="h-4 w-4" />
+                <Icons.copy className="h-5 w-5" />
                 <span>Copy to Clipboard</span>
               </div>
             </Button>
-            <Button onClick={handleDownloadCSV} variant={'outline'}>
+            <Button onClick={handleDownloadExcel} variant="outline">
               <div className="flex items-center gap-2">
-                <Icons.file className="h-4 w-4" />
-                <span>Download as CSV</span>
+                <Icons.file className="h-5 w-5" />
+                <span>Download Excel</span>
               </div>
             </Button>
           </div>
         )}
       </div>
-       <Toaster />
+    </>
+  );
+};
+
+
+// Server Component
+export default function Home() {
+  return (
+    <>
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
+      <ClientHome />
+      <Toaster />
     </>
   );
 }
