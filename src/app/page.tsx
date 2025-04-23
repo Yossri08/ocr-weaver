@@ -148,7 +148,14 @@ const ClientHome = () => {
       const csvRows = [allKeys.join(',')];
 
       parsedData.forEach(row => {
-        const values = allKeys.map(key => (row[key] ?? '')); // fill missing fields
+        const values = allKeys.map(key => {
+          let value = row[key] ?? '';
+          // Enclose values in double quotes if they contain commas or quotes
+          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+            value = `"${value.replace(/"/g, '""')}"`; // Escape double quotes inside the value
+          }
+          return value;
+        });
         csvRows.push(values.join(','));
       });
 
