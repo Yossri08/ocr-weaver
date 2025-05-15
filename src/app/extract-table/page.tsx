@@ -149,7 +149,7 @@ export default function Home() {
         <ModeToggle />
       </div>
       <div className="flex flex-col items-center justify-start min-h-screen py-8 px-4">
-        <img src="/logo-Medibafth (1).jpg" alt="MEDIBAT Logo" className="h-20 mb-4" />
+        <img src="/logo-Medibafth.jpg" alt="MEDIBAT Logo" className="h-20 mb-6" />
         <h1 className="text-2xl font-bold mb-4">sheet extraction</h1>
 
         {/* Upload Image */}
